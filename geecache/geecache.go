@@ -1,6 +1,7 @@
 package geecache
 
 import (
+	pb "GeeCache/geecache/geecachepb"
 	"GeeCache/geecache/singleflight"
 	"fmt"
 	"log"
@@ -141,9 +142,14 @@ func (g *Group) getLocally(key string) (ByteView, error) {
 
 // 实现了 PeerGetter 接口的 httpGetter 从访问远程节点，获取缓存值
 func (g *Group) getFromPeer(peer PeerGetter, key string) (ByteView, error) {
-	bytes, err := peer.Get(g.name, key) // Get实现对应接口的函数在http中
+	req := &pb.Request{
+		Group: g.name,
+		Key:   key,
+	}
+	res := &pb.Response{}
+	err := peer.Get(req, res) // Get实现对应接口的函数在http中
 	if err != nil {
 		return ByteView{}, err
 	}
-	return ByteView{b: bytes}, nil
+	return ByteView{b: res.Value}, nil
 }
